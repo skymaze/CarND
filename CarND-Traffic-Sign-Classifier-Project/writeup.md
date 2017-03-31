@@ -111,10 +111,12 @@ My final model consisted of the following layers:
 | Max pooling	      	| 2x2 stride,  outputs 14x14x6 		     		|
 | Convolution 3x3	    | 1x1 stride, VALID padding, outputs 10x10x16  	|
 | Flatten       		| outputs 400 		        					|
-| Fully connected		| outputs 120 		        					|
+| Fully connected		| outputs 1024 		        					|
 | RELU					|												|
-| Fully connected		| outputs 84 		        					|
+| Dropout               | avoid overfitting                             |
+| Fully connected		| outputs 1024 		        					|
 | RELU					|												|
+| Dropout               | avoid overfitting                             |
 | Fully connected		| outputs 43 		        					|
 | softmax	        	|           		        					|
 |       	        	|           		        					|
@@ -124,21 +126,34 @@ My final model consisted of the following layers:
 
 The code for training the model is located in the eigth 16th-18thcell of the ipython notebook. 
 
-To train the model, I used sklearn.utils.shuffle to shuffle the data. I used 
+To train the model, I used parameters below:
+  EPOCHS = 100 (for better accuracy)
+  BATCH_SIZE = 1024 (for less oscillation)
+I also used sklearn.utils.shuffle to shuffle the data. 
+
 
 ####5. Describe the approach taken for finding a solution. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
 The code for calculating the accuracy of the model is located in the ninth cell of the Ipython notebook.
 
 My final model results were:
-* training set accuracy of ?
-* validation set accuracy of ? 
-* test set accuracy of ?
+* training set accuracy of 0.995
+* validation set accuracy of 0.961 
+* test set accuracy of 0.938
 
 If an iterative approach was chosen:
 * What was the first architecture that was tried and why was it chosen?
+
+    Just simple LeNet. Because it works well with MNIST image.
+
 * What were some problems with the initial architecture?
+
+    At the begining, the accuracy is around 0.92. No matter how I changed parameters, the accuracy can not break through 0.93 stablely. 
+
 * How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to over fitting or under fitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
+
+    I figured out it was because of overfitting, so I add two Dropout layer with keep_prob 0.9. And It worked well.
+
 * Which parameters were tuned? How were they adjusted and why?
 * What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?
 

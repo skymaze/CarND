@@ -112,10 +112,10 @@ My final model consisted of the following layers:
 | Max pooling	      	| 2x2 stride,  outputs 14x14x6 		     		|
 | Convolution 3x3	    | 1x1 stride, VALID padding, outputs 10x10x16  	|
 | Flatten       		| outputs 400 		        					|
-| Fully connected		| outputs 1024 		        					|
+| Fully connected		| outputs 120 		        					|
 | RELU					|												|
 | Dropout               | avoid overfitting                             |
-| Fully connected		| outputs 1024 		        					|
+| Fully connected		| outputs 84 		        					|
 | RELU					|												|
 | Dropout               | avoid overfitting                             |
 | Fully connected		| outputs 43 		        					|

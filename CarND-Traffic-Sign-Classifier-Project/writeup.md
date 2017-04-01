@@ -42,7 +42,7 @@ You're reading it! and here is a link to my [project code](https://github.com/sk
 
 The code for this step is contained in the second code cell of the IPython notebook.  
 
-I used the pandas library to calculate summary statistics of the traffic
+I used the numpy library to calculate summary statistics of the traffic
 signs data set:
 
 * The size of training set is 34799
@@ -66,7 +66,14 @@ The code for this step is contained in the 5th-8th code cell of the IPython note
 
 As a first step, I decided to show one image of each class because I wanted to decide how to preprocess the data.
 
-Then, I tested adjust_gamma and equalize_adapthist using scikit-image.
+**Update:describes the preprocessing techniques used and why these techniques were chosen.**
+
+When looking at the image, I found a problem, some images were overexposed, and some were too dark to identify the signs. so I decided to normalize them.
+
+I used [skimage.exposure.is_low_contrast()](http://scikit-image.org/docs/dev/api/skimage.exposure.html#skimage.exposure.is_low_contrast) to determine weather the image was overexposed or 
+underexposed. Then, I used [skimage.exposure.adjust_gamma()](http://scikit-image.org/docs/dev/api/skimage.exposure.html#skimage.exposure.adjust_gamma) which can perform Gamma Correction on the input image to adjust overexposed or underexposed images.
+
+I also tested [scikit-image.exposure.equalize_adapthist](http://scikit-image.org/docs/dev/api/skimage.exposure.html#skimage.exposure.equalize_adapthist) which can enhance local details based on Contrast Limited Adaptive Histogram Equalization (CLAHE) according to the documentation.
 
 Here is an example of a traffic sign image before and after preprocessing.
 
@@ -82,7 +89,7 @@ equalize_adapthist:
 
 ![alt text][image2e]
 
-Visually equalize_adapthist looks better.However, equalize_adapthist has precision loss when converting from float64 to uint16. All in all, adjust_gamma has a better accuracy.
+Visually equalize_adapthist looks better.However, equalize_adapthist has precision loss when converting from float64 to uint16. And that made accuracy lower. All in all, adjust_gamma preprocess has a better accuracy.
 
 ####2. Describe how, and identify where in your code, you set up training, validation and testing data. How much data was in each set? Explain what techniques were used to split the data into these sets. (OPTIONAL: As described in the "Stand Out Suggestions" part of the rubric, if you generated additional data for training, describe why you decided to generate additional data, how you generated the data, identify where in your code, and provide example images of the additional data)
 

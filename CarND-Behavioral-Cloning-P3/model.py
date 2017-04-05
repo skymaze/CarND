@@ -8,7 +8,7 @@ import numpy as np
 
 from keras.models import Sequential
 from keras.layers.convolutional import Conv2D, Cropping2D
-from keras.layers.core import Flatten, Dense, Lambda
+from keras.layers.core import Flatten, Dense, Lambda, Dropout
 
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
@@ -37,7 +37,7 @@ def generator(samples, batch_size=32):
         images = []
         measurements = []
         for batch_sample in batch_samples:
-
+            # Use 3 cameras
             measurement = float(batch_sample[3])
             measurement_left = measurement + CORRECTION
             measurement_right = measurement - CORRECTION
@@ -48,7 +48,7 @@ def generator(samples, batch_size=32):
                 current_path = './data/IMG/' + filename
                 image = cv2.imread(current_path)
                 images.append(image)
-                # augment image
+                # Augment image
                 images.append(cv2.flip(image, 1))
 
             measurements.extend([measurement,
@@ -64,15 +64,16 @@ def generator(samples, batch_size=32):
 
             yield shuffle(x_train, y_train)
 
-TRAIN_GENERATOR = generator(TRAIN_SAMPLES, batch_size=128)
-VALIDATION_GENERATOR = generator(VALIDATION_SAMPLES, batch_size=128)
+TRAIN_GENERATOR = generator(TRAIN_SAMPLES, batch_size=32)
+VALIDATION_GENERATOR = generator(VALIDATION_SAMPLES, batch_size=32)
 
 ROW, COL, CH = 160, 320, 3
-# model
+# Model
 MODEL = Sequential()
 MODEL.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(ROW, COL, CH)))
-MODEL.add(Cropping2D(cropping=((60, 20), (0, 0))))
+MODEL.add(Cropping2D(cropping=((55, 20), (0, 0))))
 MODEL.add(Conv2D(24, 5, strides=(2, 2), activation='relu'))
+MODEL.add(Dropout(0.5))
 MODEL.add(Conv2D(36, 5, strides=(2, 2), activation='relu'))
 MODEL.add(Conv2D(48, 5, strides=(2, 2), activation='relu'))
 MODEL.add(Conv2D(64, 3, activation='relu'))
@@ -91,4 +92,5 @@ MODEL.fit_generator(TRAIN_GENERATOR,
                     validation_steps=len(VALIDATION_SAMPLES),
                     epochs=3)
 
+# Save model
 MODEL.save('model.h5')

@@ -55,7 +55,7 @@ My first step was to use a convolution neural network model similar to the [nvid
 
 I split my image and steering angle data into a training and validation set using sklearn. The first model always fell off the track and drove into valley where looks like a road but it's not. And the model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
 
-To combat the overfitting, I modified the model and added a Dropout layer. Then I tested Dropout parameter from 0.9 to 0.6. And 0.7 has the best accuracy.
+To combat the overfitting, I modified the model and added a Dropout layer. Then I tested Dropout parameter from 0.9 to 0.5. And 0.7 has the best accuracy.
 
 At the end of the process, the vehicle is able to drive autonomously around the track and can drove back if it has fell off the track.
 
@@ -67,19 +67,22 @@ The final model architecture (model.py lines 72-85) consisted of of the followin
 |:---------------------:|:---------------------------------------------:| 
 | Input         		| 160x320x3 RGB image   						|
 | Cropping2D            | crop top 55px, botton 20px                    |
+| Convolution 5x5     	| 2x2 stride, VALID padding                  	|
+| RELU					|												|
+| Dropout               | avoid overfitting                             |
+| Convolution 5x5     	| 2x2 stride, VALID padding                  	|
+| RELU					|												|
+| Convolution 5x5     	| 2x2 stride, VALID padding                  	|
+| RELU					|												|
 | Convolution 5x5     	| 1x1 stride, VALID padding                  	|
 | RELU					|												|
-| Convolution 3x3	    | 1x1 stride, VALID padding, outputs 10x10x16  	|
-| Flatten       		| outputs 400 		        					|
-| Fully connected		| outputs 120 		        					|
+| Convolution 5x5     	| 1x1 stride, VALID padding                  	|
 | RELU					|												|
-| Dropout               | avoid overfitting                             |
-| Fully connected		| outputs 84 		        					|
-| RELU					|												|
-| Dropout               | avoid overfitting                             |
-| Fully connected		| outputs 43 		        					|
-| softmax	        	|           		        					|
-|       	        	|           		        					|
+| Flatten               |                                               |
+| densely-connected     | outputs 100 		        					|
+| densely-connected  	| outputs 50									|
+| densely-connected  	| outputs 10		        					|
+| densely-connected  	| outputs 1 									|
 
 Here is a visualization of the architecture
 

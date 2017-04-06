@@ -46,7 +46,9 @@ def generator(samples, batch_size=32):
                 source_path = batch_sample[i]
                 filename = source_path.split('/')[-1]
                 current_path = './data/IMG/' + filename
-                image = cv2.imread(current_path)
+                image_bgr = cv2.imread(current_path)
+                image = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+                # image = cv2.resize(image, (80, 160), cv2.INTER_NEAREST)
                 images.append(image)
                 # Augment image
                 images.append(cv2.flip(image, 1))
@@ -71,13 +73,14 @@ ROW, COL, CH = 160, 320, 3
 # Model
 MODEL = Sequential()
 MODEL.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(ROW, COL, CH)))
-MODEL.add(Cropping2D(cropping=((55, 20), (0, 0))))
+MODEL.add(Cropping2D(cropping=((50, 20), (0, 0))))
 MODEL.add(Conv2D(24, 5, strides=(2, 2), activation='relu'))
-MODEL.add(Dropout(0.5))
+MODEL.add(Dropout(0.8))
 MODEL.add(Conv2D(36, 5, strides=(2, 2), activation='relu'))
 MODEL.add(Conv2D(48, 5, strides=(2, 2), activation='relu'))
 MODEL.add(Conv2D(64, 3, activation='relu'))
 MODEL.add(Conv2D(64, 3, activation='relu'))
+MODEL.add(Dropout(0.8))
 MODEL.add(Flatten())
 MODEL.add(Dense(100))
 MODEL.add(Dense(50))

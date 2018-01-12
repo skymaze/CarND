@@ -52,8 +52,8 @@ int main()
 
   PID pid;
   // TODO: Initialize the pid variable.
-  double params[3] = {0.1,0,0};
-  double paramds[3] = {1,1,1};
+  double params[3] = {0.1,0.0,0.0};
+  double paramds[3] = {0.1,0.1,0.1};
   if (twiddle) {
     pid.Init(params[0], params[1], params[2]);
   } else {
@@ -131,7 +131,7 @@ int main()
                   }
                   case 1:{
                     if (term == 0) {
-                      pid.UpdateKp(paramds[1]);
+                      pid.UpdateKi(paramds[1]);
                       term = 1;
                     } else if (term == 1) {
                       if (pid.SquaredError() < best_err) {
@@ -158,7 +158,7 @@ int main()
                   }
                   case 2:{
                     if (term == 0) {
-                      pid.UpdateKp(paramds[2]);
+                      pid.UpdateKd(paramds[2]);
                       term = 1;
                     } else if (term == 1) {
                       if (pid.SquaredError() < best_err) {
@@ -195,7 +195,7 @@ int main()
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.5;
+          msgJson["throttle"] = 0.3;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);

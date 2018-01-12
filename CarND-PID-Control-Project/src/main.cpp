@@ -41,7 +41,7 @@ int main()
 
   bool twiddle = true;
 
-  double tol = 0.2;
+  double tol = 0.002;
 
   double best_err = 999;
 
@@ -52,7 +52,7 @@ int main()
 
   PID pid;
   // TODO: Initialize the pid variable.
-  double params[3] = {0,0,0};
+  double params[3] = {0.1,0,0};
   double paramds[3] = {1,1,1};
   if (twiddle) {
     pid.Init(params[0], params[1], params[2]);
@@ -85,15 +85,16 @@ int main()
           pid.UpdateError(cte);
           steer_value = pid.TotalError() / -deg2rad(25.0);
 
+          if (steer_value > 1.0) {
+            steer_value = 1.0;
+          }
+
+          if (steer_value < -1.0) {
+            steer_value = -1.0;
+          }
+
           if (twiddle) {
-            if (pid.Iteration() <= 3000) {
-              json msgJson;
-              msgJson["steering_angle"] = steer_value;
-              msgJson["throttle"] = 0.3;
-              auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-              std::cout << msg << std::endl;
-              ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
-            } else {
+            if (pid.Iteration() >= 200) {
               if (pid.SquaredError() < tol) {
                 twiddle = false;
                 std::cout << "*****************************************************" << std::endl;
@@ -194,7 +195,7 @@ int main()
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.3;
+          msgJson["throttle"] = 0.5;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);

@@ -17,6 +17,13 @@ public:
   double Ki;
   double Kd;
 
+  /* 
+  * Helper
+  */
+  double pre_cte;
+  double sum_err;
+  int n;
+
   /*
   * Constructor
   */
@@ -41,6 +48,25 @@ public:
   * Calculate the total PID error.
   */
   double TotalError();
+
+  double SquaredError();
+
+  void Reset();
+
+  int Iteration();
+
+  void UpdateKp(double delta);
+
+  void UpdateKi(double delta);
+
+  void UpdateKd(double delta);
+
+  double GetKp();
+
+  double GetKi();
+
+  double GetKd();
+
 };
 
 #endif /* PID_H */

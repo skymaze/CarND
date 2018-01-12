@@ -4,6 +4,7 @@
 #include "PID.h"
 #include <math.h>
 
+
 // for convenience
 using json = nlohmann::json;
 
@@ -28,14 +29,38 @@ std::string hasData(std::string s) {
   return "";
 }
 
+// Send Reset Signal
+void resetSimulator(uWS::WebSocket<uWS::SERVER> ws) {
+  std::string msg = "42[\"reset\",{}]";
+  ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+}
+
 int main()
 {
   uWS::Hub h;
 
+  bool twiddle = true;
+
+  double tol = 0.2;
+
+  double best_err = 999;
+
+  //pd index
+  int pd_i = 0;
+
+  int term = 0;
+
   PID pid;
   // TODO: Initialize the pid variable.
+  double params[3] = {0,0,0};
+  double paramds[3] = {1,1,1};
+  if (twiddle) {
+    pid.Init(params[0], params[1], params[2]);
+  } else {
+    pid.Init(0, 0, 0);
+  }
 
-  h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&pid, &twiddle, &tol, &pd_i, &paramds, &term, &best_err](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -57,6 +82,112 @@ int main()
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
+          pid.UpdateError(cte);
+          steer_value = pid.TotalError() / -deg2rad(25.0);
+
+          if (twiddle) {
+            if (pid.Iteration() <= 3000) {
+              json msgJson;
+              msgJson["steering_angle"] = steer_value;
+              msgJson["throttle"] = 0.3;
+              auto msg = "42[\"steer\"," + msgJson.dump() + "]";
+              std::cout << msg << std::endl;
+              ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+            } else {
+              if (pid.SquaredError() < tol) {
+                twiddle = false;
+                std::cout << "*****************************************************" << std::endl;
+                std::cout << pid.GetKd() << " " << pid.GetKi() << " " << pid.GetKd() << std::endl;
+                std::cout << "*****************************************************" << std::endl;
+              } else {
+                switch(pd_i){
+                  case 0: {
+                    if (term == 0) {
+                      pid.UpdateKp(paramds[0]);
+                      term = 1;
+                    } else if (term == 1) {
+                      if (pid.SquaredError() < best_err) {
+                        best_err = pid.SquaredError();
+                        paramds[0] *= 1.1;
+                        term = 0;
+                        pd_i = 1;
+                      } else {
+                        pid.UpdateKp(-2 * paramds[0]);
+                        term = 2;
+                      }
+                    } else if (term == 2) {
+                      if (pid.SquaredError() < best_err) {
+                        best_err = pid.SquaredError();
+                        paramds[0] *= 1.1;
+                      } else {
+                        pid.UpdateKp(paramds[0]);
+                        paramds[0] *= 0.9;
+                      }
+                      term = 0;
+                      pd_i = 1;
+                    }
+                    break;
+                  }
+                  case 1:{
+                    if (term == 0) {
+                      pid.UpdateKp(paramds[1]);
+                      term = 1;
+                    } else if (term == 1) {
+                      if (pid.SquaredError() < best_err) {
+                        best_err = pid.SquaredError();
+                        paramds[1] *= 1.1;
+                        term = 0;
+                        pd_i = 2;
+                      } else {
+                        pid.UpdateKi(-2 * paramds[1]);
+                        term = 2;
+                      }
+                    } else if (term == 2) {
+                      if (pid.SquaredError() < best_err) {
+                        best_err = pid.SquaredError();
+                        paramds[1] *= 1.1;
+                      } else {
+                        pid.UpdateKi(paramds[1]);
+                        paramds[1] *= 0.9;
+                      }
+                      term = 0;
+                      pd_i = 2;
+                    }
+                    break;
+                  }
+                  case 2:{
+                    if (term == 0) {
+                      pid.UpdateKp(paramds[2]);
+                      term = 1;
+                    } else if (term == 1) {
+                      if (pid.SquaredError() < best_err) {
+                        best_err = pid.SquaredError();
+                        paramds[2] *= 1.1;
+                        term = 0;
+                        pd_i = 0;
+                      } else {
+                        pid.UpdateKd(-2 * paramds[2]);
+                        term = 2;
+                      }
+                    } else if (term == 2) {
+                      if (pid.SquaredError() < best_err) {
+                        best_err = pid.SquaredError();
+                        paramds[2] *= 1.1;
+                      } else {
+                        pid.UpdateKd(paramds[2]);
+                        paramds[2] *= 0.9;
+                      }
+                      term = 0;
+                      pd_i = 0;
+                    }
+                    break;
+                  }
+                }
+              }
+              pid.Reset();
+              resetSimulator(ws);
+            }
+          }
           
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;

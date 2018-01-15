@@ -39,11 +39,11 @@ int main()
 {
   uWS::Hub h;
 
-  bool twiddle = true;
+  bool twiddle = false;
 
-  double tol = 0.002;
+  double tol = 0.2;
 
-  double best_err = 999;
+  double best_err = -1;
 
   //pd index
   int pd_i = 0;
@@ -52,12 +52,12 @@ int main()
 
   PID pid;
   // TODO: Initialize the pid variable.
-  double params[3] = {0.1,0.0,0.0};
-  double paramds[3] = {0.1,0.1,0.1};
+  double params[3] = {1.0,0.0,0.0};
+  double paramds[3] = {0.5,0.5,0.5};
   if (twiddle) {
     pid.Init(params[0], params[1], params[2]);
   } else {
-    pid.Init(0, 0, 0);
+    pid.Init(0.3, 0.0005, 3);
   }
 
   h.onMessage([&pid, &twiddle, &tol, &pd_i, &paramds, &term, &best_err](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
@@ -83,7 +83,8 @@ int main()
           * another PID controller to control the speed!
           */
           pid.UpdateError(cte);
-          steer_value = pid.TotalError() / -deg2rad(25.0);
+          // std::cout << pid.GetKp() << " " << pid.GetKi() << " " << pid.GetKd() << std::endl;
+          steer_value = pid.TotalError();
 
           if (steer_value > 1.0) {
             steer_value = 1.0;
@@ -94,13 +95,17 @@ int main()
           }
 
           if (twiddle) {
-            if (pid.Iteration() >= 200) {
+            if (best_err < 0) {
+              best_err = pid.SquaredError();
+            }
+            if (pid.Iteration() >= 1000) {
               if (pid.SquaredError() < tol) {
                 twiddle = false;
                 std::cout << "*****************************************************" << std::endl;
-                std::cout << pid.GetKd() << " " << pid.GetKi() << " " << pid.GetKd() << std::endl;
+                std::cout << pid.GetKp() << " " << pid.GetKi() << " " << pid.GetKd() << std::endl;
                 std::cout << "*****************************************************" << std::endl;
               } else {
+                std::cout << pd_i << " " << term  << std::endl;
                 switch(pd_i){
                   case 0: {
                     if (term == 0) {
@@ -197,7 +202,7 @@ int main()
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = 0.3;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          // std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {

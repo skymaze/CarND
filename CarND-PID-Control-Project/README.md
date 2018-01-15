@@ -2,6 +2,19 @@
 Self-Driving Car Engineer Nanodegree Program
 
 ---
+## Reflection
+
+1.Describe the effect each of the P, I, D components had in your implementation.
+
+P: A proportional factor to the cross track error, larger p while turn faster but while also cause car overshoots more.
+
+I: Integral term will keep track of all the previous cross track error to compensate for biases.
+
+D: Derivative term will keep track of the cross track error to reduce oscillation.
+
+2.Describe how the final hyperparameters were chosen.
+
+I tried to implement an autoturn twiddle, but the simulater will collapse after several times reset. Finally I tuned the parameter manuly with the rule of twiddle.
 
 ## Dependencies
 

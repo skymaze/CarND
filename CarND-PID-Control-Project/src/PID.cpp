@@ -10,10 +10,10 @@ PID::PID() {}
 
 PID::~PID() {}
 
-void PID::Init(double Kp, double Ki, double Kd) {
-    Kp = Kp;
-    Ki = Ki;
-    Kd = Kd;
+void PID::Init(double KpI, double KiI, double KdI) {
+    Kp = KpI;
+    Ki = KiI;
+    Kd = KdI;
 
     p_error = 0.0;
     i_error = 0.0;
@@ -34,7 +34,7 @@ void PID::UpdateError(double cte) {
 }
 
 double PID::TotalError() {
-    return Kp * p_error + Ki * i_error + Kd * d_error;
+    return - Kp * p_error - Ki * i_error - Kd * d_error;
 }
 
 double PID::SquaredError() {

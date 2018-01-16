@@ -102,14 +102,14 @@ int main() {
           double throttle_value;
 
           vector<double> waypoints_x(ptsx.size(), 0.0);
-          vector<double> waypoints_y(ptsx.size(), 0.0);
+          vector<double> waypoints_y(ptsy.size(), 0.0);
 
-          // transform waypoints to be from car's perspective
+          // Transform waypoints
           for (size_t i = 0; i < ptsx.size(); i++) {
             double dx = ptsx[i] - px;
             double dy = ptsy[i] - py;
-            waypoints_x[i] = dx * cos(-psi) - dy * sin(-psi);
-            waypoints_y[i] = dx * sin(-psi) + dy * cos(-psi);
+            waypoints_x[i] = dx * cos(psi) + dy * sin(psi);
+            waypoints_y[i] = dy * cos(psi) - dx * sin(psi);
           }
 
           // Build coeffs
@@ -139,12 +139,9 @@ int main() {
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
-          for(size_t i = 2; i < actuators.size(); ++i) {
-            if (i%2 == 0) {
-              mpc_x_vals.push_back(actuators[i]);
-            } else {
-              mpc_y_vals.push_back(actuators[i]);
-            }
+          for(size_t i = 2; i < actuators.size(); i+=2) {
+            mpc_x_vals.push_back(actuators[i]);
+            mpc_y_vals.push_back(actuators[i+1]);
           }
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system

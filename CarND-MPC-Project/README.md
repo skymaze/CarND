@@ -1,6 +1,40 @@
+# Rubric
+## Implemrntation
+* The Model:Student describes their model in detail. This includes the state, actuators and update equations.
+
+The state includes x,y coordinates, orientation angle (psi), velocity witch are given by simulater,also cross track error(etc) and psi error(epsi) by calculate.
+Actuatos include steer_value and throttle_value. The model uses previous state and actuations to calculate for next step.
+
+* Timestep Length and Elapsed Duration (N & dt): Student discusses the reasoning behind the chosen N (timestep length) and dt (elapsed duration between timesteps) values. Additionally the student details the previous values tried.
+
+At the beginning, I used 20/0.05 given by the quiz, when I turning the weights of cost, I changed it to 10/0.1 for better performance.I alse tried 20/0.1, 10/0.05.
+
+* Polynomial Fitting and MPC Preprocessing. A polynomial is fitted to waypoints. If the student preprocesses waypoints, the vehicle state, and/or actuators prior to the MPC procedure it is described.
+
+In main.cpp line 107-113, The waypoints were preprocessed to make the vehicle's x y at the origin where x and y both 0,and the orientation angle(psi) also zero.
+
+```cpp
+for (size_t i = 0; i < ptsx.size(); i++) {
+  double dx = ptsx[i] - px;
+  double dy = ptsy[i] - py;
+  waypoints_x[i] = dx * cos(psi) + dy * sin(psi);
+  waypoints_y[i] = dy * cos(psi) - dx * sin(psi);
+}
+```
+
+* Model Predictive Control with Latency: The student implements Model Predictive Control that handles a 100 millisecond latency. Student provides details on how they deal with latency.
+
+In MPC.cpp line 253-255 latency were added.
+
+```cpp
+result.push_back(solution.x[delta_start + latency]);
+result.push_back(solution.x[a_start + latency]);
+```
+
+---
+
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
-
 ---
 
 ## Dependencies

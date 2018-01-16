@@ -9,6 +9,8 @@ using CppAD::AD;
 size_t N = 10;
 double dt = 0.1;
 
+double latency = 0.1/dt;
+
 double ref_v = 50;
 
 size_t x_start = 0;
@@ -54,20 +56,20 @@ class FG_eval {
 
     // The part of the cost based on the reference state.
     for (size_t t = 0; t < N; t++) {
-      fg[0] += 20 * CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += 2000 * CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += CppAD::pow(vars[cte_start + t], 2);
+      fg[0] += CppAD::pow(vars[epsi_start + t], 2);
       fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
     // Minimize the use of actuators.
     for (size_t t = 0; t < N - 1; t++) {
-      fg[0] += 1000 * CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += CppAD::pow(vars[delta_start + t], 2);
       fg[0] += CppAD::pow(vars[a_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
     for (size_t t = 0; t < N - 2; t++) {
-      fg[0] += 8000 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] += 1000 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
       fg[0] += CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
 
@@ -99,8 +101,9 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + t - 1];
       AD<double> a0 = vars[a_start + t - 1];
 
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0;
-      AD<double> psides0 = CppAD::atan(coeffs[1]);
+      AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * pow(x0, 2) + coeffs[3] * pow(x0, 3);
+
+      AD<double> psides0 = CppAD::atan(coeffs[1] + (2 * coeffs[2] * x0) + (3 * coeffs[3] * pow(x0, 2)));
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -154,16 +157,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // SHOULD BE 0 besides initial state.
   Dvector vars(n_vars);
   for (size_t i = 0; i < n_vars; i++) {
-    vars[i] = 0;
+    vars[i] = 0.0;
   }
-
-  // Set the initial variable values
-  vars[x_start] = x;
-  vars[y_start] = y;
-  vars[psi_start] = psi;
-  vars[v_start] = v;
-  vars[cte_start] = cte;
-  vars[epsi_start] = epsi;
 
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
@@ -248,12 +243,13 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // creates a 2 element double vector.
   vector<double> result;
 
-  result.push_back(solution.x[delta_start]);
-  result.push_back(solution.x[a_start]);
+  // handle latency
+  result.push_back(solution.x[delta_start + latency]);
+  result.push_back(solution.x[a_start + latency]);
 
   for (size_t i = 0; i < N - 1; i++) {
-    result.push_back(solution.x[i + 1]);
-    result.push_back(solution.x[N + i + 1]);
+    result.push_back(solution.x[x_start + i]);
+    result.push_back(solution.x[y_start + i]);
   }
 
   return result;

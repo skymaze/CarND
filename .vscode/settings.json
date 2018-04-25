@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "cmath": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "array": "cpp",
+        "hash_map": "cpp",
+        "slist": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp"
     }
 }
